@@ -540,7 +540,7 @@ function renderAjustes(){
 const titles={hoy:"Examen particular",examen:"Examen de conciencia",oraciones:"Oraciones",progreso:"Progreso",ajustes:"Ajustes"};
 let current="hoy";
 function show(tab,opt){
-  current=tab; if(tab==="progreso") detailKey=null;
+  current=tab; if(typeof refreshDate==="function"&&$("today").textContent) refreshDate(); if(tab==="progreso") detailKey=null;
   Object.keys(titles).forEach(t=>$("v-"+t).classList.toggle("hidden",t!==tab));
   document.querySelectorAll("nav.tabs button").forEach(b=>b.setAttribute("aria-selected",b.dataset.tab===tab));
   $("title").textContent=titles[tab];
@@ -591,7 +591,11 @@ $("fileImport").onchange=async e=>{
 };
 
 /* ---------- Inicio ---------- */
-$("today").textContent=logical().toLocaleDateString("es",{weekday:"long",day:"numeric",month:"long"});
+function refreshDate(){$("today").textContent=logical().toLocaleDateString("es",{weekday:"long",day:"numeric",month:"long"});applySeason();}
+refreshDate();
+let lastDay=key();
+document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"){refreshDate();if(key()!==lastDay){lastDay=key();detailKey=null;}show(current);}});
+setInterval(()=>{if(key()!==lastDay){lastDay=key();refreshDate();show(current);}},60000);
 applySeason();
 show(state.config.defecto?"hoy":"ajustes");
 
