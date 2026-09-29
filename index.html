@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Examen</title>
+<link rel="icon" type="image/png" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="apple-mobile-web-app-title" content="Examen">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Spectral:ital,wght@0,400;0,600;1,400&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#EEF2EE; --paper:#FAFBF9; --ink:#1E2830; --soft:#5B6770; --line:#D3D9D4;
+  --accent:#2F6B47; --gold:#A87C22; --tint:#E3ECE5;
+  --serif:"Spectral", Georgia, "Times New Roman", serif;
+  --sans:"Instrument Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){--bg:#12171C;--paper:#1A2027;--ink:#E4E8EA;--soft:#98A3AB;--line:#2C343C;--gold:#D6AE55}
+}
+:root[data-theme="dark"]{--bg:#12171C;--paper:#1A2027;--ink:#E4E8EA;--soft:#98A3AB;--line:#2C343C;--gold:#D6AE55}
+*,*::before,*::after{box-sizing:border-box}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.5;-webkit-font-smoothing:antialiased;transition:background .4s}
+.band{height:6px;background:var(--accent)}
+main{max-width:560px;margin:0 auto;padding:16px 18px 110px}
+header.top{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.season{display:inline-flex;align-items:center;gap:8px;background:var(--tint);color:var(--ink);border-radius:999px;padding:4px 12px;font-size:.85rem}
+.season i{width:10px;height:10px;border-radius:50%;background:var(--accent);display:inline-block}
+.sync{font-size:.8rem;color:var(--soft)}
+.sync.err{color:#B3412F}
+h1{font-family:var(--serif);font-weight:400;font-size:2rem;line-height:1.15;margin:10px 0 2px}
+h2{font-family:var(--serif);font-weight:600;font-size:1.3rem;margin:0 0 6px}
+h3{font-size:1rem;font-weight:600;margin:0 0 4px}
+p{margin:0 0 10px}
+.muted{color:var(--soft);font-size:.9rem}
+.ref{color:var(--soft);font-size:.8rem}
+.prayer{font-family:var(--serif);font-style:italic;font-size:1.05rem;line-height:1.7;color:var(--ink)}
+.prayer p{margin:0 0 8px}
+section.block{background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:18px;margin:14px 0}
+.moment{display:flex;gap:14px}
+.moment .time{flex:0 0 64px;font-family:var(--serif);font-size:.95rem;color:var(--soft);padding-top:2px}
+.moment .body{flex:1;min-width:0}
+button,input,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+.btn{border:1px solid var(--accent);background:transparent;color:var(--accent);border-radius:10px;padding:10px 14px;font-weight:500}
+.btn.solid{background:var(--accent);color:var(--paper)}
+.btn.done{opacity:.85}
+.link{border:0;background:none;color:var(--accent);padding:0;font-weight:500;text-decoration:underline;text-underline-offset:3px}
+:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+textarea,input[type=text]{width:100%;border:1px solid var(--line);background:var(--bg);border-radius:10px;padding:10px 12px;resize:vertical}
+textarea{min-height:64px}
+label.field{display:block;margin:10px 0 4px;font-size:.9rem;color:var(--soft)}
+.counter{display:flex;align-items:center;gap:12px;margin:10px 0}
+.counter button{width:48px;height:48px;border-radius:50%;border:1px solid var(--line);background:var(--bg);font-size:1.4rem;line-height:1}
+.counter .n{font-family:var(--serif);font-size:2rem;min-width:2ch;text-align:center}
+.tally-row{display:flex;align-items:center;gap:10px;height:28px}
+.tally-row .lbl{width:52px;font-size:.8rem;color:var(--soft)}
+.tally-row .rule{flex:1;height:28px;border-bottom:1.5px solid var(--ink);display:flex;align-items:flex-end;gap:5px;padding:0 0 5px 4px;overflow:hidden}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--gold);flex:0 0 auto}
+.dot.b{background:var(--accent)}
+.purpose{background:var(--tint);border-radius:10px;padding:12px 14px;margin:12px 0}
+.purpose .v{font-family:var(--serif);font-size:1.15rem}
+nav.tabs{position:fixed;left:0;right:0;bottom:0;background:var(--paper);border-top:1px solid var(--line);display:flex;justify-content:center;padding-bottom:env(safe-area-inset-bottom,0px)}
+nav.tabs .in{display:flex;max-width:560px;width:100%}
+nav.tabs button{flex:1;border:0;background:none;padding:12px 2px 14px;font-size:.8rem;color:var(--soft);border-top:2px solid transparent}
+nav.tabs button[aria-selected="true"]{color:var(--accent);border-top-color:var(--accent);font-weight:600}
+.step{border-top:1px solid var(--line);padding:16px 0}
+.step:first-child{border-top:0;padding-top:4px}
+.step h3{display:flex;gap:10px;align-items:baseline}
+.step h3 .k{font-family:var(--serif);color:var(--gold);font-size:1.1rem}
+.check{display:flex;gap:12px;padding:10px 0;border-top:1px dashed var(--line);align-items:flex-start}
+.check:first-of-type{border-top:0}
+.check input{width:22px;height:22px;margin-top:2px;accent-color:var(--accent);flex:0 0 auto}
+.check .t{font-weight:500}
+.check .q{color:var(--soft);font-size:.9rem}
+details{margin-top:6px}
+summary{cursor:pointer;font-weight:600;padding:6px 0;color:var(--accent)}
+details.pr{border-top:1px solid var(--line);padding:6px 0}
+details.pr:first-of-type{border-top:0}
+details.pr summary{color:var(--ink);font-family:var(--serif);font-weight:600;font-size:1.1rem}
+details.pr summary .ref{font-family:var(--sans);font-weight:400;margin-left:6px}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(76px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--bg);padding:8px 14px;border-radius:999px;font-size:.85rem;opacity:0;transition:opacity .25s;pointer-events:none}
+.toast.on{opacity:1}
+.hist{width:100%;border-collapse:collapse;font-size:.9rem}
+.hist td{padding:8px 4px;border-top:1px solid var(--line);vertical-align:middle}
+.hist .d{width:78px;color:var(--soft)}
+.mini{display:flex;gap:3px;flex-wrap:wrap}
+.mini .dot{width:6px;height:6px}
+.stat{display:flex;gap:10px}
+.stat>div{flex:1;background:var(--bg);border-radius:10px;padding:10px 12px}
+.stat .big{font-family:var(--serif);font-size:1.6rem}
+.hidden{display:none}
+@media (prefers-reduced-motion:reduce){.toast,body{transition:none}}
+</style>
+</head>
+<body>
+<div class="band"></div>
+<main>
+  <header class="top">
+    <span class="season"><i></i><span id="seasonName"></span></span>
+    <span class="sync" id="sync">Guardado en este teléfono ✓</span>
+  </header>
+  <h1 id="title">Examen</h1>
+  <p class="muted" id="today"></p>
+
+  <!-- HOY -->
+  <div id="v-hoy">
+    <div class="purpose">
+      <div class="muted">Trabajo en</div>
+      <div class="v" id="purposeText"></div>
+    </div>
+
+    <section class="block moment">
+      <div class="time">Mañana</div>
+      <div class="body">
+        <h3>Al levantarme</h3>
+        <p class="muted">Propongo guardarme con cuidado de este defecto durante el día. <span class="ref">EE 24</span></p>
+        <p><button class="link" data-pray="manana">Rezar la oración de la mañana</button></p>
+        <label class="field" for="propManana">Concretamente hoy (opcional)</label>
+        <input type="text" id="propManana" placeholder="Ej.: no contestar mal en el entrenamiento">
+        <p style="margin-top:10px"><button class="btn" id="btnManana"></button></p>
+      </div>
+    </section>
+
+    <section class="block moment">
+      <div class="time">Tarde</div>
+      <div class="body">
+        <h3>Después de comer</h3>
+        <p class="muted">Pido a Dios la gracia de recordar cuántas veces caí. Repaso hora por hora desde que me levanté y marco un punto por cada vez. Luego propongo enmendarme hasta la noche. <span class="ref">EE 25</span></p>
+        <div class="counter">
+          <button aria-label="Quitar una" data-k="tarde" data-d="-1">−</button>
+          <span class="n" id="nTarde">0</span>
+          <button aria-label="Sumar una" data-k="tarde" data-d="1">+</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="block moment">
+      <div class="time">Noche</div>
+      <div class="body">
+        <h3>Después de cenar</h3>
+        <p class="muted">Hago lo mismo, repasando desde el examen de la tarde hasta ahora. <span class="ref">EE 26</span></p>
+        <div class="counter">
+          <button aria-label="Quitar una" data-k="noche" data-d="-1">−</button>
+          <span class="n" id="nNoche">0</span>
+          <button aria-label="Sumar una" data-k="noche" data-d="1">+</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="block">
+      <h3>Las dos líneas de hoy</h3>
+      <p class="muted">Compara la primera línea con la segunda: la de la noche debería ir quedando más corta. <span class="ref">EE 27–31</span></p>
+      <div id="tallyToday"></div>
+      <p class="muted" id="compareText" style="margin-top:8px"></p>
+    </section>
+
+    <p style="text-align:center"><button class="btn solid" data-go="examen">Ir al examen de la noche</button></p>
+  </div>
+
+  <!-- EXAMEN -->
+  <div id="v-examen" class="hidden">
+    <p class="muted">Antes de dormir, sin prisa. <span class="ref">EE 43</span></p>
+    <section class="block">
+      <div class="step">
+        <h3><span class="k">1</span>Dar gracias</h3>
+        <p class="muted">Por los beneficios recibidos hoy.</p>
+        <textarea id="exGracias" placeholder="Hoy doy gracias por…"></textarea>
+      </div>
+      <div class="step">
+        <h3><span class="k">2</span>Pedir luz</h3>
+        <p class="prayer">Señor, dame la gracia de conocer mis faltas y de rechazarlas. Que vea mi día como Tú lo ves.</p>
+      </div>
+      <div class="step">
+        <h3><span class="k">3</span>Revisar el día</h3>
+        <p class="muted">Recorre el día desde que te levantaste: pensamientos, palabras, obras y omisiones. Marca solo donde reconozcas que fallaste.</p>
+        <details open><summary>Los diez mandamientos</summary><div id="listMand"></div></details>
+        <details><summary>Las bienaventuranzas</summary><p class="ref">Mateo 5, 3–10</p><div id="listBien"></div></details>
+        <label class="field" for="exNotas">Lo que quiero recordar de hoy</label>
+        <textarea id="exNotas"></textarea>
+      </div>
+      <div class="step">
+        <h3><span class="k">4</span>Pedir perdón</h3>
+        <p class="prayer">Dios mío, me arrepiento de todo corazón de mis faltas de hoy, porque te ofendí a Ti, que eres tan bueno. Confío en tu misericordia.</p>
+      </div>
+      <div class="step">
+        <h3><span class="k">5</span>Proponer enmienda</h3>
+        <p class="muted">Con la gracia de Dios, algo concreto para mañana.</p>
+        <textarea id="exProp" placeholder="Mañana voy a…"></textarea>
+      </div>
+      <div class="step">
+        <h3>Padre nuestro</h3>
+        <div class="prayer" id="pnExamen"></div>
+        <p><button class="link" data-pray="noche">Terminar con la oración de la noche</button></p>
+        <p><button class="btn solid" id="btnExamen"></button></p>
+      </div>
+    </section>
+  </div>
+
+  <!-- ORACIONES -->
+  <div id="v-oraciones" class="hidden">
+    <p class="muted">Para rezar cada día.</p>
+    <div id="prayList"></div>
+  </div>
+
+  <!-- PROGRESO -->
+  <div id="v-progreso" class="hidden">
+    <section class="block">
+      <div class="stat">
+        <div><div class="muted">Esta semana</div><div class="big" id="sWeek">0</div><div class="muted">caídas</div></div>
+        <div><div class="muted">Semana pasada</div><div class="big" id="sPrev">0</div><div class="muted">caídas</div></div>
+        <div><div class="muted">Exámenes</div><div class="big" id="sEx">0</div><div class="muted">en 7 días</div></div>
+      </div>
+      <p class="muted" id="weekText" style="margin-top:10px"></p>
+    </section>
+    <section class="block">
+      <h3>Últimos 14 días</h3>
+      <p class="muted"><span style="color:var(--gold)">●</span> tarde &nbsp; <span style="color:var(--accent)">●</span> noche &nbsp; ✓ examen hecho</p>
+      <table class="hist" id="hist"></table>
+    </section>
+  </div>
+
+  <!-- AJUSTES -->
+  <div id="v-ajustes" class="hidden">
+    <section class="block">
+      <h2>Qué voy a trabajar</h2>
+      <p class="muted">Ignacio propone atacar un solo defecto a la vez; al vencerlo, creces en la virtud contraria. <span class="ref">EE 24</span></p>
+      <label class="field" for="cfgDef">Defecto que quiero corregir</label>
+      <input type="text" id="cfgDef" placeholder="Ej.: impaciencia">
+      <label class="field" for="cfgVir">Virtud que quiero ganar</label>
+      <input type="text" id="cfgVir" placeholder="Ej.: paciencia">
+      <p class="muted" style="margin-top:12px">Ideas:</p>
+      <div id="presets" style="display:flex;flex-wrap:wrap;gap:8px"></div>
+      <p style="margin-top:14px"><button class="btn solid" id="btnCfg">Guardar</button></p>
+    </section>
+    <section class="block">
+      <h3>Dónde se guardan tus datos</h3>
+      <p class="muted" id="syncLong"></p>
+      <p style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px">
+        <button class="btn" id="btnExport">Descargar copia</button>
+        <button class="btn" id="btnImport">Restaurar copia</button>
+        <input type="file" id="fileImport" accept="application/json,.json" class="hidden">
+      </p>
+    </section>
+  </div>
+</main>
+
+<nav class="tabs" role="tablist">
+  <div class="in">
+    <button role="tab" data-tab="hoy">Hoy</button>
+    <button role="tab" data-tab="examen">Examen</button>
+    <button role="tab" data-tab="oraciones">Oraciones</button>
+    <button role="tab" data-tab="progreso">Progreso</button>
+    <button role="tab" data-tab="ajustes">Ajustes</button>
+  </div>
+</nav>
+<div class="toast" id="toast"></div>
+
+<script>
+/* ---------- Contenido ---------- */
+const MAND = [
+  ["Amarás a Dios sobre todas las cosas","¿Recé hoy? ¿Puse algo (el celular, el deporte, la opinión de otros) por encima de Dios?"],
+  ["No tomarás el nombre de Dios en vano","¿Usé el nombre de Dios sin respeto, con enojo o en broma?"],
+  ["Santificarás las fiestas","¿Fui a misa el domingo? ¿Dejé espacio para Dios y para el descanso?"],
+  ["Honrarás a tu padre y a tu madre","¿Obedecí y traté con respeto a mis padres, profesores y entrenadores?"],
+  ["No matarás","¿Guardé rencor, insulté o humillé a alguien? ¿Cuidé mi salud y la de otros?"],
+  ["No cometerás actos impuros","¿Cuidé la pureza en lo que hice, miré y consumí en pantallas?"],
+  ["No robarás","¿Tomé algo ajeno? ¿Copié en una tarea o examen? ¿Desperdicié lo que tengo?"],
+  ["No darás falso testimonio ni mentirás","¿Mentí? ¿Critiqué o hablé mal de alguien a sus espaldas?"],
+  ["No consentirás pensamientos ni deseos impuros","¿Me quedé voluntariamente en pensamientos que no debía?"],
+  ["No codiciarás los bienes ajenos","¿Tuve envidia de lo que otros tienen o logran?"]
+];
+const BIEN = [
+  ["Pobres de espíritu","¿Reconocí que dependo de Dios, o me creí autosuficiente?"],
+  ["Los que lloran","¿Me dolió el sufrimiento de otros? ¿Acompañé a alguien que lo pasaba mal?"],
+  ["Los mansos","¿Respondí con calma, o con dureza y agresividad?"],
+  ["Hambre y sed de justicia","¿Defendí lo justo y a quien lo necesitaba, o miré para otro lado?"],
+  ["Los misericordiosos","¿Perdoné? ¿Ayudé a alguien sin esperar nada?"],
+  ["Los limpios de corazón","¿Actué con intención recta, sin doblez ni apariencias?"],
+  ["Los que trabajan por la paz","¿Provoqué conflictos o ayudé a calmarlos?"],
+  ["Perseguidos por causa de la justicia","¿Tuve vergüenza de mostrar mi fe o mis valores?"]
+];
+const PRESETS = [["impaciencia","paciencia"],["pereza","diligencia"],["soberbia","humildad"],["enojo","mansedumbre"],["crítica","caridad al hablar"],["desorden","orden"],["mentira","sinceridad"],["envidia","alegría por el bien ajeno"]];
+
+const PN = "Padre nuestro, que estás en el cielo, santificado sea tu Nombre; venga a nosotros tu reino; hágase tu voluntad en la tierra como en el cielo. Danos hoy nuestro pan de cada día; perdona nuestras ofensas, como también nosotros perdonamos a los que nos ofenden; no nos dejes caer en la tentación, y líbranos del mal. Amén.";
+const AVE = "Dios te salve, María, llena eres de gracia, el Señor es contigo. Bendita tú eres entre todas las mujeres, y bendito es el fruto de tu vientre, Jesús. Santa María, Madre de Dios, ruega por nosotros, pecadores, ahora y en la hora de nuestra muerte. Amén.";
+const ANIMA = "Alma de Cristo, santifícame.|Cuerpo de Cristo, sálvame.|Sangre de Cristo, embriágame.|Agua del costado de Cristo, lávame.|Pasión de Cristo, confórtame.|Oh buen Jesús, óyeme.|Dentro de tus llagas, escóndeme.|No permitas que me aparte de Ti.|Del maligno enemigo, defiéndeme.|En la hora de mi muerte, llámame,|y mándame ir a Ti,|para que con tus santos te alabe|por los siglos de los siglos. Amén.";
+
+const PRAYERS = [
+  {g:"Mañana", id:"manana", t:"Oración de la mañana", r:"", when:"Al levantarte, antes de hacer el propósito del día",
+   b:["En el nombre del Padre, y del Hijo, y del Espíritu Santo. Amén.",
+      "Señor, te doy gracias por este nuevo día. Te ofrezco todo lo que voy a pensar, decir y hacer hoy: el estudio, el trabajo, el descanso y el trato con los demás.",
+      "Te pido la gracia de que todas mis intenciones, acciones y obras sean ordenadas a tu servicio y alabanza.",
+      "{PROP}",
+      "María, Madre mía, acompáñame hoy. Amén."]},
+  {g:"Mañana", id:"angel", t:"Ángel de la guarda", r:"", when:"",
+   b:["Ángel de mi guarda, dulce compañía, no me desampares ni de noche ni de día. No me dejes solo, que me perdería. Amén."]},
+  {g:"Durante el día", id:"anima", t:"Alma de Cristo", r:"Anima Christi", when:"La oración que San Ignacio más recomendaba; muy buena después de comulgar o en cualquier momento del día",
+   b:ANIMA.split("|"), lines:true},
+  {g:"Durante el día", id:"tomad", t:"Tomad, Señor, y recibid", r:"San Ignacio", when:"Oración de entrega, escrita por San Ignacio",
+   b:["Tomad, Señor, y recibid toda mi libertad, mi memoria, mi entendimiento y toda mi voluntad; todo mi haber y mi poseer.","Vos me lo disteis; a Vos, Señor, lo torno.","Todo es vuestro: disponed de ello según toda vuestra voluntad.","Dadme vuestro amor y gracia, que esta me basta. Amén."]},
+  {g:"Durante el día", id:"generosidad", t:"Oración por la generosidad", r:"atribuida a San Ignacio", when:"",
+   b:["Señor Jesús, enséñame a ser generoso, a servirte como Tú lo mereces: a dar sin contar, a combatir sin preocuparme de las heridas, a trabajar sin buscar descanso, a entregarme sin esperar otra recompensa que saber que hago tu voluntad. Amén."]},
+  {g:"Noche", id:"noche", t:"Oración de la noche", r:"", when:"Después del examen de conciencia, antes de dormir",
+   b:["Señor, gracias por este día. Perdona lo que hice mal, guarda lo bueno que hice y completa lo que dejé a medias.",
+      "Visita, Señor, esta casa y aleja de ella las insidias del enemigo; que tus santos ángeles habiten en ella y nos guarden en paz, y que tu bendición permanezca siempre con nosotros.",
+      "En tus manos, Señor, encomiendo mi espíritu.",
+      "Bajo tu amparo nos acogemos, santa Madre de Dios; no desprecies las súplicas que te dirigimos en nuestras necesidades, antes bien líbranos de todos los peligros, oh Virgen gloriosa y bendita. Amén."]},
+  {g:"Oraciones básicas", id:"pn", t:"Padre nuestro", r:"", when:"", b:[PN]},
+  {g:"Oraciones básicas", id:"ave", t:"Ave María", r:"", when:"", b:[AVE]},
+  {g:"Oraciones básicas", id:"gloria", t:"Gloria", r:"", when:"", b:["Gloria al Padre, y al Hijo, y al Espíritu Santo. Como era en el principio, ahora y siempre, por los siglos de los siglos. Amén."]}
+];
+
+/* ---------- Tiempo litúrgico ---------- */
+const PAL = {
+  verde:  {name:"Tiempo Ordinario", l:["#2F6B47","#EEF2EE","#E1EBE3"], d:["#8FCB9F","#11181A","#1E2B24"]},
+  morado: {name:"", l:["#5B3C7D","#F1EEF4","#E6DFEE"], d:["#C4A9E3","#15131C","#261F33"]},
+  rosa:   {name:"", l:["#A84E72","#F6EFF2","#F0DEE6"], d:["#EBA7C2","#1A1317","#33212A"]},
+  blanco: {name:"", l:["#8F6A12","#F7F5EF","#EFE7D2"], d:["#E3C06B","#17161199","#2E2818"]},
+  rojo:   {name:"", l:["#9E2B2B","#F5EFEE","#EFDCDA"], d:["#EE9C92","#1A1313","#352020"]}
+};
+function dn(y,m,d){return Date.UTC(y,m,d)/864e5;}
+function easter(y){const a=y%19,b=Math.floor(y/100),c=y%100,d=Math.floor(b/4),e=b%4,f=Math.floor((b+8)/25),g=Math.floor((b-f+1)/3),h=(19*a+b-d-g+15)%30,i=Math.floor(c/4),k=c%4,l=(32+2*e+2*i-h-k)%7,m=Math.floor((a+11*h+22*l)/451),mo=Math.floor((h+l-7*m+114)/31),da=((h+l-7*m+114)%31)+1;return dn(y,mo-1,da);}
+function adventStart(y){const x=new Date(Date.UTC(y,11,25));const dow=x.getUTCDay();return dn(y,11,25)-(dow===0?7:dow)-21;}
+function baptism(y){const x=new Date(Date.UTC(y,0,6));const dow=x.getUTCDay();return dn(y,0,6)+(dow===0?7:7-dow);}
+function liturgical(date){
+  const y=date.getFullYear(), t=dn(y,date.getMonth(),date.getDate());
+  const E=easter(y), A=adventStart(y);
+  const md=(m,d)=>t===dn(y,m-1,d);
+  if(t>=dn(y,11,25) || t<=baptism(y)) return ["blanco","Navidad"];
+  if(t>=A){ if(t===A+14) return ["rosa","Adviento, domingo Gaudete"]; return ["morado","Adviento"]; }
+  if(t===E-46) return ["morado","Miércoles de Ceniza"];
+  if(t===E-7) return ["rojo","Domingo de Ramos"];
+  if(t===E-3) return ["blanco","Jueves Santo"];
+  if(t===E-2) return ["rojo","Viernes Santo"];
+  if(t===E-1) return ["morado","Sábado Santo"];
+  if(t>E-46 && t<E){ if(t===E-21) return ["rosa","Cuaresma, domingo Laetare"]; if(t>E-7) return ["morado","Semana Santa"]; return ["morado","Cuaresma"]; }
+  if(t===E+49) return ["rojo","Pentecostés"];
+  if(t>=E && t<E+49) return ["blanco","Tiempo de Pascua"];
+  if(t===E+56) return ["blanco","Santísima Trinidad"];
+  const fixed=[[1,1,"blanco","Santa María, Madre de Dios"],[3,19,"blanco","San José"],[3,25,"blanco","Anunciación"],[6,29,"rojo","San Pedro y San Pablo"],[7,31,"blanco","San Ignacio de Loyola"],[8,15,"blanco","Asunción de la Virgen"],[11,1,"blanco","Todos los Santos"],[12,8,"blanco","Inmaculada Concepción"]];
+  for(const f of fixed) if(md(f[0],f[1])) return [f[2],f[3]];
+  return ["verde","Tiempo Ordinario"];
+}
+const darkMQ = matchMedia("(prefers-color-scheme: dark)");
+function applySeason(){
+  const [c,name]=liturgical(new Date());
+  const p=PAL[c][darkMQ.matches?"d":"l"], r=document.documentElement.style;
+  r.setProperty("--accent",p[0]); r.setProperty("--bg",p[1].slice(0,7)); r.setProperty("--tint",p[2]);
+  document.getElementById("seasonName").textContent=name;
+  let m=document.querySelector('meta[name="theme-color"]'); if(!m){m=document.createElement("meta");m.name="theme-color";document.head.appendChild(m);} m.content=p[0];
+}
+darkMQ.addEventListener && darkMQ.addEventListener("change",applySeason);
+
+/* ---------- Datos ---------- */
+const LS_KEY="examen-ignaciano-v2";
+let state={config:{defecto:"",virtud:"",u:0},days:{}};
+try{const raw=localStorage.getItem(LS_KEY)||localStorage.getItem("examen-ignaciano-v1");if(raw){const s=JSON.parse(raw);state.config=Object.assign(state.config,s.config||{});state.days=s.days||{};}}catch(e){}
+
+function key(d=new Date()){const z=n=>String(n).padStart(2,"0");return d.getFullYear()+"-"+z(d.getMonth()+1)+"-"+z(d.getDate());}
+function blankDay(){return{manana:false,prop:"",tarde:0,noche:0,ex:{gracias:"",marcas:{},notas:"",prop:"",hecho:false},u:0};}
+function day(k=key()){if(!state.days[k])state.days[k]=blankDay();return state.days[k];}
+function totalOf(d){return d?(d.tarde||0)+(d.noche||0):0;}
+
+let col=null, online=false, dirty=new Set(), timer=null, writing=false;
+const $=id=>document.getElementById(id);
+function setSync(txt,err){const s=$("sync");s.textContent=txt;s.classList.toggle("err",!!err);}
+function touch(k){ // k = fecha o "config"
+  const now=Date.now();
+  if(k==="config") state.config.u=now; else day(k).u=now;
+  try{localStorage.setItem(LS_KEY,JSON.stringify(state));}catch(e){}
+  dirty.add(k);
+  setSync("Guardado en este teléfono ✓");
+}
+async function flush(){
+  if(!online||writing||!dirty.size) return;
+  writing=true; clearTimeout(timer);
+  const items=[...dirty]; dirty.clear();
+  let failed=false;
+  for(const k of items){
+    const body=k==="config"?state.config:state.days[k];
+    try{ await col.doc(k==="config"?"config":"d-"+k).set({json:JSON.stringify(body),u:body.u||Date.now()}); }
+    catch(e){ failed=true; dirty.add(k); }
+  }
+  writing=false;
+  if(failed){setSync("No se pudo guardar en la nube, reintentando",true);timer=setTimeout(flush,4000);}
+  else if(dirty.size){flush();}
+  else setSync("Guardado en tu cuenta ✓");
+}
+document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="hidden")flush();});
+addEventListener("pagehide",flush);
+
+function toast(t){const e=$("toast");e.textContent=t;e.classList.add("on");clearTimeout(e._t);e._t=setTimeout(()=>e.classList.remove("on"),1500);}
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+function dots(n,b){let h="";for(let i=0;i<Math.min(n,40);i++)h+=`<span class="dot${b?" b":""}"></span>`;return h;}
+
+/* ---------- Vistas ---------- */
+function renderHoy(){
+  const d=day(), c=state.config;
+  $("purposeText").textContent=c.defecto?`${c.defecto} → ${c.virtud||"…"}`:"Elige en Ajustes el defecto que quieres trabajar";
+  if(document.activeElement!==$("propManana")) $("propManana").value=d.prop||"";
+  const b=$("btnManana"); b.textContent=d.manana?"Propósito hecho ✓":"Hago el propósito"; b.classList.toggle("solid",d.manana);
+  $("nTarde").textContent=d.tarde; $("nNoche").textContent=d.noche;
+  $("tallyToday").innerHTML=`<div class="tally-row"><span class="lbl">Tarde</span><div class="rule">${dots(d.tarde)}</div></div><div class="tally-row"><span class="lbl">Noche</span><div class="rule">${dots(d.noche,1)}</div></div>`;
+  const y=new Date();y.setDate(y.getDate()-1);const yd=state.days[key(y)];
+  let t="";
+  if(yd&&totalOf(yd)+totalOf(d)>0){const a=totalOf(d),b2=totalOf(yd);t=a<b2?`Hoy llevas ${a}; ayer fueron ${b2}.`:a===b2?`Igual que ayer (${b2}).`:`Ayer fueron ${b2}. Mañana es otra oportunidad.`;}
+  $("compareText").textContent=t;
+}
+function renderList(el,items,prefix){
+  const m=day().ex.marcas;
+  el.innerHTML=items.map((it,i)=>{const id=prefix+i;return `<label class="check"><input type="checkbox" data-mark="${id}" ${m[id]?"checked":""}><span><span class="t">${esc(it[0])}</span><br><span class="q">${esc(it[1])}</span></span></label>`;}).join("");
+}
+function renderExamen(){
+  const ex=day().ex;
+  for(const [id,f] of [["exGracias","gracias"],["exNotas","notas"],["exProp","prop"]]) if(document.activeElement!==$(id)) $(id).value=ex[f]||"";
+  renderList($("listMand"),MAND,"m"); renderList($("listBien"),BIEN,"b");
+  $("pnExamen").innerHTML=`<p>${PN}</p>`;
+  const b=$("btnExamen"); b.textContent=ex.hecho?"Examen terminado ✓":"Terminar el examen";
+}
+function renderOraciones(open){
+  const c=state.config;
+  const prop=c.defecto?`Ayúdame hoy a cuidarme de mi ${esc(c.defecto)} y a crecer en ${esc(c.virtud||"la virtud contraria")}.`:"Ayúdame hoy a cuidarme del defecto que estoy trabajando.";
+  let html="",g="";
+  for(const p of PRAYERS){
+    if(p.g!==g){ if(g) html+="</section>"; g=p.g; html+=`<h2 style="margin-top:22px">${esc(g)}</h2><section class="block">`; }
+    const body=p.b.map(x=>x==="{PROP}"?prop:x);
+    html+=`<details class="pr" id="pr-${p.id}" ${open===p.id?"open":""}><summary>${esc(p.t)}${p.r?`<span class="ref">${esc(p.r)}</span>`:""}</summary>${p.when?`<p class="muted">${esc(p.when)}</p>`:""}<div class="prayer">${p.lines?`<p>${body.join("<br>")}</p>`:body.map(x=>`<p>${x}</p>`).join("")}</div></details>`;
+  }
+  $("prayList").innerHTML=html+"</section>";
+  if(open){const el=$("pr-"+open);if(el)setTimeout(()=>el.scrollIntoView({block:"start"}),30);}
+}
+function renderProgreso(){
+  const sum=(from,to)=>{let s=0,e=0;for(let i=from;i<to;i++){const d=new Date();d.setDate(d.getDate()-i);const x=state.days[key(d)];s+=totalOf(x);if(x&&x.ex&&x.ex.hecho)e++;}return[s,e];};
+  const [w,ex]=sum(0,7),[p]=sum(7,14);
+  $("sWeek").textContent=w;$("sPrev").textContent=p;$("sEx").textContent=ex;
+  $("weekText").textContent=(w||p)?(w<p?"Menos caídas que la semana pasada.":w===p?"Igual que la semana pasada.":"Más caídas que la semana pasada: fíjate en qué momentos del día caes más."):"";
+  let rows="";
+  for(let i=0;i<14;i++){const d=new Date();d.setDate(d.getDate()-i);const x=state.days[key(d)];
+    const lab=i===0?"Hoy":d.toLocaleDateString("es",{weekday:"short",day:"numeric"});
+    rows+=`<tr><td class="d">${lab}</td><td><div class="mini">${dots(x?x.tarde:0)}</div></td><td><div class="mini">${dots(x?x.noche:0,1)}</div></td><td style="text-align:right;width:28px">${x&&x.ex&&x.ex.hecho?"✓":""}</td></tr>`;}
+  $("hist").innerHTML=rows;
+}
+function renderAjustes(){
+  $("cfgDef").value=state.config.defecto||"";$("cfgVir").value=state.config.virtud||"";
+  $("presets").innerHTML=PRESETS.map(p=>`<button class="btn" data-pre="${esc(p[0])}|${esc(p[1])}" style="padding:6px 10px;font-size:.85rem">${esc(p[0])} → ${esc(p[1])}</button>`).join("");
+  $("syncLong").textContent="Tus datos se guardan solo en este teléfono. Haz una copia de respaldo de vez en cuando, sobre todo antes de cambiar de celular o borrar los datos del navegador.";
+}
+const titles={hoy:"Examen particular",examen:"Examen de conciencia",oraciones:"Oraciones",progreso:"Progreso",ajustes:"Ajustes"};
+let current="hoy";
+function show(tab,opt){
+  current=tab;
+  Object.keys(titles).forEach(t=>$("v-"+t).classList.toggle("hidden",t!==tab));
+  document.querySelectorAll("nav.tabs button").forEach(b=>b.setAttribute("aria-selected",b.dataset.tab===tab));
+  $("title").textContent=titles[tab];
+  ({hoy:renderHoy,examen:renderExamen,oraciones:()=>renderOraciones(opt),progreso:renderProgreso,ajustes:renderAjustes})[tab]();
+  if(!opt) window.scrollTo(0,0);
+}
+
+/* ---------- Eventos ---------- */
+document.addEventListener("click",e=>{
+  const t=e.target.closest("[data-tab],[data-go],[data-k],[data-pre],[data-pray]");
+  if(!t)return;
+  if(t.dataset.tab) show(t.dataset.tab);
+  else if(t.dataset.go) show(t.dataset.go);
+  else if(t.dataset.pray) show("oraciones",t.dataset.pray);
+  else if(t.dataset.k){const d=day();d[t.dataset.k]=Math.max(0,(d[t.dataset.k]||0)+Number(t.dataset.d));touch(key());renderHoy();}
+  else if(t.dataset.pre){const [a,b]=t.dataset.pre.split("|");$("cfgDef").value=a;$("cfgVir").value=b;}
+});
+$("btnManana").onclick=()=>{const d=day();d.manana=!d.manana;touch(key());if(d.manana)toast("Propósito hecho");renderHoy();};
+$("propManana").oninput=e=>{day().prop=e.target.value;touch(key());};
+$("exGracias").oninput=e=>{day().ex.gracias=e.target.value;touch(key());};
+$("exNotas").oninput=e=>{day().ex.notas=e.target.value;touch(key());};
+$("exProp").oninput=e=>{day().ex.prop=e.target.value;touch(key());};
+document.addEventListener("change",e=>{const id=e.target.dataset&&e.target.dataset.mark;if(id){day().ex.marcas[id]=e.target.checked;touch(key());}});
+$("btnExamen").onclick=()=>{const ex=day().ex;ex.hecho=!ex.hecho;touch(key());if(ex.hecho)toast("Examen terminado. Buenas noches.");renderExamen();};
+$("btnCfg").onclick=()=>{state.config.defecto=$("cfgDef").value.trim();state.config.virtud=$("cfgVir").value.trim();touch("config");toast("Guardado");show("hoy");};
+
+$("btnExport").onclick=async()=>{
+  const blob=new Blob([JSON.stringify(state,null,1)],{type:"application/json"});
+  const name="examen-respaldo-"+key()+".json";
+  try{ const f=new File([blob],name,{type:"application/json"});
+    if(navigator.canShare&&navigator.canShare({files:[f]})){ await navigator.share({files:[f],title:"Respaldo del examen"}); return; } }catch(e){ if(e&&e.name==="AbortError") return; }
+  const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download=name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(a.href),2000);
+};
+$("btnImport").onclick=()=>$("fileImport").click();
+$("fileImport").onchange=async e=>{
+  const f=e.target.files[0]; if(!f) return;
+  try{ const d=JSON.parse(await f.text()); if(!d||!d.days) throw 0;
+    if(!confirm("Esto combina la copia con lo que ya tienes. Donde haya el mismo día, se queda la versión más reciente. ¿Continuar?")) return;
+    for(const [k,v] of Object.entries(d.days)){ const l=state.days[k]; if(!l||(v.u||0)>(l.u||0)) state.days[k]=v; }
+    if(d.config&&(d.config.u||0)>=(state.config.u||0)) state.config=d.config;
+    localStorage.setItem(LS_KEY,JSON.stringify(state)); toast("Copia restaurada"); show("hoy");
+  }catch(err){ toast("Ese archivo no es una copia válida"); }
+  e.target.value="";
+};
+
+/* ---------- Inicio ---------- */
+$("today").textContent=new Date().toLocaleDateString("es",{weekday:"long",day:"numeric",month:"long"});
+applySeason();
+show(state.config.defecto?"hoy":"ajustes");
+
+if("serviceWorker" in navigator){navigator.serviceWorker.register("sw.js").catch(()=>{});}
+if(navigator.storage&&navigator.storage.persist){navigator.storage.persist().catch(()=>{});}
+setSync("Guardado en este teléfono ✓");
+</script>
+</body>
+</html>
