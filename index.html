@@ -97,6 +97,18 @@ details.pr summary .ref{font-family:var(--sans);font-weight:400;margin-left:6px}
 .stat>div{flex:1;background:var(--bg);border-radius:10px;padding:10px 12px}
 .stat .big{font-family:var(--serif);font-size:1.6rem}
 .hidden{display:none}
+.seg{display:flex;background:var(--tint);border-radius:12px;padding:4px;gap:4px;margin:12px 0}
+.seg button{flex:1;border:0;background:none;padding:9px 4px;border-radius:9px;font-size:.88rem;color:var(--soft)}
+.seg button[aria-pressed="true"]{background:var(--paper);color:var(--accent);font-weight:600}
+.fault{padding:9px 0;border-top:1px dashed var(--line)}
+.fault:first-child{border-top:0}
+.fault .row{display:flex;justify-content:space-between;gap:10px}
+.fault .cnt{font-family:var(--serif);font-size:1.1rem;color:var(--accent);flex:0 0 auto}
+.bar{height:5px;background:var(--accent);border-radius:3px;margin-top:5px;opacity:.75}
+.hist tr.day{cursor:pointer}
+.hist .go{color:var(--soft);text-align:right;width:18px}
+.detail dt{font-size:.85rem;color:var(--soft);margin-top:12px}
+.detail dd{margin:2px 0 0;white-space:pre-wrap}
 @media (prefers-reduced-motion:reduce){.toast,body{transition:none}}
 </style>
 </head>
@@ -167,7 +179,7 @@ details.pr summary .ref{font-family:var(--sans);font-weight:400;margin-left:6px}
 
   <!-- EXAMEN -->
   <div id="v-examen" class="hidden">
-    <p class="muted">Antes de dormir, sin prisa. <span class="ref">EE 43</span></p>
+    <p class="muted"><span id="exDate"></span>. Antes de dormir, sin prisa. <span class="ref">EE 43</span></p>
     <section class="block">
       <div class="step">
         <h3><span class="k">1</span>Dar gracias</h3>
@@ -212,19 +224,38 @@ details.pr summary .ref{font-family:var(--sans);font-weight:400;margin-left:6px}
 
   <!-- PROGRESO -->
   <div id="v-progreso" class="hidden">
-    <section class="block">
-      <div class="stat">
-        <div><div class="muted">Esta semana</div><div class="big" id="sWeek">0</div><div class="muted">caídas</div></div>
-        <div><div class="muted">Semana pasada</div><div class="big" id="sPrev">0</div><div class="muted">caídas</div></div>
-        <div><div class="muted">Exámenes</div><div class="big" id="sEx">0</div><div class="muted">en 7 días</div></div>
+    <div id="progMain">
+      <div class="seg">
+        <button data-range="7" aria-pressed="true">Semana</button>
+        <button data-range="30" aria-pressed="false">Mes</button>
+        <button data-range="conf" aria-pressed="false">Confesión</button>
       </div>
-      <p class="muted" id="weekText" style="margin-top:10px"></p>
-    </section>
-    <section class="block">
-      <h3>Últimos 14 días</h3>
-      <p class="muted"><span style="color:var(--gold)">●</span> tarde &nbsp; <span style="color:var(--accent)">●</span> noche &nbsp; ✓ examen hecho</p>
-      <table class="hist" id="hist"></table>
-    </section>
+      <p class="muted" id="rangeLabel"></p>
+      <section class="block">
+        <div class="stat">
+          <div><div class="muted">Caídas</div><div class="big" id="sFalls">0</div><div class="muted" id="sFallsSub">examen particular</div></div>
+          <div><div class="muted">Exámenes</div><div class="big" id="sEx">0</div><div class="muted" id="sExSub"></div></div>
+        </div>
+        <p class="muted" id="cmpText" style="margin-top:10px"></p>
+      </section>
+      <section class="block">
+        <h3>En qué más caí</h3>
+        <p class="muted">Lo que marcaste en el examen de la noche, de más a menos veces.</p>
+        <div id="topFaults"></div>
+        <details id="notesBox" class="hidden"><summary>Mis notas del periodo</summary><div id="notesList"></div></details>
+      </section>
+      <section class="block">
+        <h3>Día por día</h3>
+        <p class="muted">Toca un día para ver su examen completo. <span style="color:var(--gold)">●</span> tarde <span style="color:var(--accent)">●</span> noche</p>
+        <table class="hist" id="hist"></table>
+      </section>
+      <section class="block">
+        <h3>Confesión</h3>
+        <p class="muted" id="confText"></p>
+        <p style="display:flex;gap:12px;align-items:center;flex-wrap:wrap"><button class="btn" id="btnConf">Me confesé hoy</button><button class="link hidden" id="btnConfUndo">Quitar la última</button></p>
+      </section>
+    </div>
+    <div id="progDetail" class="hidden"></div>
   </div>
 
   <!-- AJUSTES -->
@@ -351,7 +382,7 @@ function liturgical(date){
 }
 const darkMQ = matchMedia("(prefers-color-scheme: dark)");
 function applySeason(){
-  const [c,name]=liturgical(new Date());
+  const [c,name]=liturgical(logical());
   const p=PAL[c][darkMQ.matches?"d":"l"], r=document.documentElement.style;
   r.setProperty("--accent",p[0]); r.setProperty("--bg",p[1].slice(0,7)); r.setProperty("--tint",p[2]);
   document.getElementById("seasonName").textContent=name;
@@ -364,7 +395,9 @@ const LS_KEY="examen-ignaciano-v2";
 let state={config:{defecto:"",virtud:"",u:0},days:{}};
 try{const raw=localStorage.getItem(LS_KEY)||localStorage.getItem("examen-ignaciano-v1");if(raw){const s=JSON.parse(raw);state.config=Object.assign(state.config,s.config||{});state.days=s.days||{};}}catch(e){}
 
-function key(d=new Date()){const z=n=>String(n).padStart(2,"0");return d.getFullYear()+"-"+z(d.getMonth()+1)+"-"+z(d.getDate());}
+function logical(){const d=new Date();d.setHours(d.getHours()-4);return d;}
+function fromKey(k){const [y,m,d]=k.split("-").map(Number);return new Date(y,m-1,d);}
+function key(d=logical()){const z=n=>String(n).padStart(2,"0");return d.getFullYear()+"-"+z(d.getMonth()+1)+"-"+z(d.getDate());}
 function blankDay(){return{manana:false,prop:"",tarde:0,noche:0,ex:{gracias:"",marcas:{},notas:"",prop:"",hecho:false},u:0};}
 function day(k=key()){if(!state.days[k])state.days[k]=blankDay();return state.days[k];}
 function totalOf(d){return d?(d.tarde||0)+(d.noche||0):0;}
@@ -409,7 +442,7 @@ function renderHoy(){
   const b=$("btnManana"); b.textContent=d.manana?"Propósito hecho ✓":"Hago el propósito"; b.classList.toggle("solid",d.manana);
   $("nTarde").textContent=d.tarde; $("nNoche").textContent=d.noche;
   $("tallyToday").innerHTML=`<div class="tally-row"><span class="lbl">Tarde</span><div class="rule">${dots(d.tarde)}</div></div><div class="tally-row"><span class="lbl">Noche</span><div class="rule">${dots(d.noche,1)}</div></div>`;
-  const y=new Date();y.setDate(y.getDate()-1);const yd=state.days[key(y)];
+  const y=logical();y.setDate(y.getDate()-1);const yd=state.days[key(y)];
   let t="";
   if(yd&&totalOf(yd)+totalOf(d)>0){const a=totalOf(d),b2=totalOf(yd);t=a<b2?`Hoy llevas ${a}; ayer fueron ${b2}.`:a===b2?`Igual que ayer (${b2}).`:`Ayer fueron ${b2}. Mañana es otra oportunidad.`;}
   $("compareText").textContent=t;
@@ -419,6 +452,7 @@ function renderList(el,items,prefix){
   el.innerHTML=items.map((it,i)=>{const id=prefix+i;return `<label class="check"><input type="checkbox" data-mark="${id}" ${m[id]?"checked":""}><span><span class="t">${esc(it[0])}</span><br><span class="q">${esc(it[1])}</span></span></label>`;}).join("");
 }
 function renderExamen(){
+  $("exDate").textContent="Examen del "+logical().toLocaleDateString("es",{weekday:"long",day:"numeric",month:"long"});
   const ex=day().ex;
   for(const [id,f] of [["exGracias","gracias"],["exNotas","notas"],["exProp","prop"]]) if(document.activeElement!==$(id)) $(id).value=ex[f]||"";
   renderList($("listMand"),MAND,"m"); renderList($("listBien"),BIEN,"b");
@@ -437,16 +471,66 @@ function renderOraciones(open){
   $("prayList").innerHTML=html+"</section>";
   if(open){const el=$("pr-"+open);if(el)setTimeout(()=>el.scrollIntoView({block:"start"}),30);}
 }
+let range="7", detailKey=null;
+const ALLF=[...MAND.map((x,i)=>["m"+i,x[0]]),...BIEN.map((x,i)=>["b"+i,x[0]])];
+const fmt=(d,o)=>d.toLocaleDateString("es",o||{weekday:"long",day:"numeric",month:"long"});
+function lastConf(){const c=state.config.confesiones||[];return c.length?c[c.length-1]:null;}
+function rangeKeys(r,offset=0){
+  const out=[]; let n;
+  if(r==="conf"){const lc=lastConf(); if(!lc) return null; const t=logical(); t.setHours(12); n=Math.round((t-fromKey(lc).setHours(12))/864e5)+1; n=Math.min(Math.max(n,1),366);}
+  else n=Number(r);
+  for(let i=offset*n;i<offset*n+n;i++){const d=logical();d.setDate(d.getDate()-i);out.push(key(d));}
+  return out;
+}
+function tally(keys){
+  let falls=0,ex=0; const f={}; const notes=[];
+  for(const k of keys){const x=state.days[k]; if(!x) continue; falls+=totalOf(x);
+    if(x.ex){ if(x.ex.hecho) ex++; for(const [id,v] of Object.entries(x.ex.marcas||{})) if(v) f[id]=(f[id]||0)+1; if(x.ex.notas&&x.ex.notas.trim()) notes.push([k,x.ex.notas.trim()]); }}
+  return {falls,ex,f,notes};
+}
 function renderProgreso(){
-  const sum=(from,to)=>{let s=0,e=0;for(let i=from;i<to;i++){const d=new Date();d.setDate(d.getDate()-i);const x=state.days[key(d)];s+=totalOf(x);if(x&&x.ex&&x.ex.hecho)e++;}return[s,e];};
-  const [w,ex]=sum(0,7),[p]=sum(7,14);
-  $("sWeek").textContent=w;$("sPrev").textContent=p;$("sEx").textContent=ex;
-  $("weekText").textContent=(w||p)?(w<p?"Menos caídas que la semana pasada.":w===p?"Igual que la semana pasada.":"Más caídas que la semana pasada: fíjate en qué momentos del día caes más."):"";
-  let rows="";
-  for(let i=0;i<14;i++){const d=new Date();d.setDate(d.getDate()-i);const x=state.days[key(d)];
-    const lab=i===0?"Hoy":d.toLocaleDateString("es",{weekday:"short",day:"numeric"});
-    rows+=`<tr><td class="d">${lab}</td><td><div class="mini">${dots(x?x.tarde:0)}</div></td><td><div class="mini">${dots(x?x.noche:0,1)}</div></td><td style="text-align:right;width:28px">${x&&x.ex&&x.ex.hecho?"✓":""}</td></tr>`;}
-  $("hist").innerHTML=rows;
+  document.querySelectorAll("[data-range]").forEach(b=>b.setAttribute("aria-pressed",b.dataset.range===range));
+  if(detailKey){ renderDetail(); return; }
+  $("progMain").classList.remove("hidden"); $("progDetail").classList.add("hidden");
+  const keys=rangeKeys(range);
+  const lc=lastConf();
+  $("confText").textContent=lc?`Tu última confesión fue el ${fmt(fromKey(lc))}.`:"Cuando te confieses, márcalo aquí. Así podrás ver en qué caíste desde tu última confesión.";
+  $("btnConfUndo").classList.toggle("hidden",!lc);
+  if(!keys){ // sin confesión registrada
+    $("rangeLabel").textContent="Todavía no has marcado ninguna confesión. Hazlo abajo, en Confesión.";
+    $("sFalls").textContent="–";$("sEx").textContent="–";$("sExSub").textContent="";$("cmpText").textContent="";
+    $("topFaults").innerHTML='<p class="muted">Sin datos para este periodo.</p>';$("notesBox").classList.add("hidden");$("hist").innerHTML="";return;
+  }
+  $("rangeLabel").textContent= range==="conf" ? `Desde el ${fmt(fromKey(lc),{day:"numeric",month:"long"})} (${keys.length} ${keys.length===1?"día":"días"})` : `Del ${fmt(fromKey(keys[keys.length-1]),{day:"numeric",month:"long"})} al ${fmt(fromKey(keys[0]),{day:"numeric",month:"long"})}`;
+  const t=tally(keys);
+  $("sFalls").textContent=t.falls; $("sFallsSub").textContent=state.config.defecto?`de ${state.config.defecto}`:"examen particular";
+  $("sEx").textContent=t.ex; $("sExSub").textContent=`de ${keys.length} ${keys.length===1?"día":"días"}`;
+  if(range!=="conf"){ const pv=tally(rangeKeys(range,1)); const w=range==="7"?"la semana pasada":"el mes anterior";
+    $("cmpText").textContent=(t.falls||pv.falls)?(t.falls<pv.falls?`Menos caídas que ${w} (${pv.falls}).`:t.falls===pv.falls?`Igual que ${w}.`:`Más caídas que ${w} (${pv.falls}). Fíjate en qué momentos del día caes más.`):""; }
+  else $("cmpText").textContent="";
+  const list=ALLF.filter(([id])=>t.f[id]).sort((a,b)=>t.f[b[0]]-t.f[a[0]]);
+  const max=list.length?t.f[list[0][0]]:1;
+  $("topFaults").innerHTML=list.length?list.map(([id,name])=>`<div class="fault"><div class="row"><span>${esc(name)}</span><span class="cnt">${t.f[id]} ${t.f[id]===1?"vez":"veces"}</span></div><div class="bar" style="width:${Math.max(8,t.f[id]/max*100)}%"></div></div>`).join(""):'<p class="muted">No marcaste nada en este periodo.</p>';
+  $("notesBox").classList.toggle("hidden",!t.notes.length);
+  $("notesList").innerHTML=t.notes.map(([k,n])=>`<p><span class="muted">${esc(fmt(fromKey(k),{weekday:"short",day:"numeric",month:"short"}))}:</span> ${esc(n)}</p>`).join("");
+  $("hist").innerHTML=keys.slice(0,120).map((k,i)=>{const x=state.days[k];const lab=i===0?"Hoy":fmt(fromKey(k),{weekday:"short",day:"numeric"});
+    return `<tr class="day" data-day="${k}"><td class="d">${lab}</td><td><div class="mini">${dots(x?x.tarde:0)}</div></td><td><div class="mini">${dots(x?x.noche:0,1)}</div></td><td style="text-align:right;width:24px">${x&&x.ex&&x.ex.hecho?"✓":""}</td><td class="go">›</td></tr>`;}).join("");
+}
+function renderDetail(){
+  $("progMain").classList.add("hidden"); const el=$("progDetail"); el.classList.remove("hidden");
+  const x=state.days[detailKey]||blankDay(), ex=x.ex||{};
+  const marks=ALLF.filter(([id])=>(ex.marcas||{})[id]).map(([,n])=>n);
+  const item=(t,v)=>v?`<dt>${t}</dt><dd>${esc(v)}</dd>`:"";
+  el.innerHTML=`<p><button class="link" id="btnBack">‹ Volver</button></p>
+  <section class="block detail"><h2>${esc((d=>d.charAt(0).toUpperCase()+d.slice(1))(fmt(fromKey(detailKey))))}</h2>
+  <p class="muted">${ex.hecho?"Examen terminado ✓":"Examen sin terminar"}</p>
+  <div id="dTally"><div class="tally-row"><span class="lbl">Tarde</span><div class="rule">${dots(x.tarde||0)}</div></div><div class="tally-row"><span class="lbl">Noche</span><div class="rule">${dots(x.noche||0,1)}</div></div></div>
+  <dl>${item("Propósito de la mañana",x.prop)}${item("Di gracias por",ex.gracias)}
+  ${marks.length?`<dt>Donde fallé</dt><dd>${marks.map(esc).join("<br>")}</dd>`:""}
+  ${item("Lo que quise recordar",ex.notas)}${item("Propósito para el día siguiente",ex.prop)}</dl>
+  ${!x.prop&&!ex.gracias&&!marks.length&&!ex.notas&&!ex.prop?'<p class="muted" style="margin-top:12px">No anotaste nada este día.</p>':""}</section>`;
+  $("btnBack").onclick=()=>{detailKey=null;renderProgreso();window.scrollTo(0,0);};
+  window.scrollTo(0,0);
 }
 function renderAjustes(){
   $("cfgDef").value=state.config.defecto||"";$("cfgVir").value=state.config.virtud||"";
@@ -456,7 +540,7 @@ function renderAjustes(){
 const titles={hoy:"Examen particular",examen:"Examen de conciencia",oraciones:"Oraciones",progreso:"Progreso",ajustes:"Ajustes"};
 let current="hoy";
 function show(tab,opt){
-  current=tab;
+  current=tab; if(tab==="progreso") detailKey=null;
   Object.keys(titles).forEach(t=>$("v-"+t).classList.toggle("hidden",t!==tab));
   document.querySelectorAll("nav.tabs button").forEach(b=>b.setAttribute("aria-selected",b.dataset.tab===tab));
   $("title").textContent=titles[tab];
@@ -466,12 +550,14 @@ function show(tab,opt){
 
 /* ---------- Eventos ---------- */
 document.addEventListener("click",e=>{
-  const t=e.target.closest("[data-tab],[data-go],[data-k],[data-pre],[data-pray]");
+  const t=e.target.closest("[data-tab],[data-go],[data-k],[data-pre],[data-pray],[data-range],[data-day]");
   if(!t)return;
   if(t.dataset.tab) show(t.dataset.tab);
   else if(t.dataset.go) show(t.dataset.go);
   else if(t.dataset.pray) show("oraciones",t.dataset.pray);
   else if(t.dataset.k){const d=day();d[t.dataset.k]=Math.max(0,(d[t.dataset.k]||0)+Number(t.dataset.d));touch(key());renderHoy();}
+  else if(t.dataset.range){range=t.dataset.range;detailKey=null;renderProgreso();}
+  else if(t.dataset.day){detailKey=t.dataset.day;renderProgreso();}
   else if(t.dataset.pre){const [a,b]=t.dataset.pre.split("|");$("cfgDef").value=a;$("cfgVir").value=b;}
 });
 $("btnManana").onclick=()=>{const d=day();d.manana=!d.manana;touch(key());if(d.manana)toast("Propósito hecho");renderHoy();};
@@ -481,6 +567,8 @@ $("exNotas").oninput=e=>{day().ex.notas=e.target.value;touch(key());};
 $("exProp").oninput=e=>{day().ex.prop=e.target.value;touch(key());};
 document.addEventListener("change",e=>{const id=e.target.dataset&&e.target.dataset.mark;if(id){day().ex.marcas[id]=e.target.checked;touch(key());}});
 $("btnExamen").onclick=()=>{const ex=day().ex;ex.hecho=!ex.hecho;touch(key());if(ex.hecho)toast("Examen terminado. Buenas noches.");renderExamen();};
+$("btnConf").onclick=()=>{const c=state.config.confesiones||(state.config.confesiones=[]);const k=key();if(c[c.length-1]!==k)c.push(k);touch("config");toast("Anotado. Que Dios te bendiga.");range="conf";renderProgreso();};
+$("btnConfUndo").onclick=()=>{const c=state.config.confesiones||[];if(!c.length)return;if(!confirm("¿Quitar la confesión del "+fmt(fromKey(c[c.length-1]))+"?"))return;c.pop();touch("config");renderProgreso();};
 $("btnCfg").onclick=()=>{state.config.defecto=$("cfgDef").value.trim();state.config.virtud=$("cfgVir").value.trim();touch("config");toast("Guardado");show("hoy");};
 
 $("btnExport").onclick=async()=>{
@@ -503,7 +591,7 @@ $("fileImport").onchange=async e=>{
 };
 
 /* ---------- Inicio ---------- */
-$("today").textContent=new Date().toLocaleDateString("es",{weekday:"long",day:"numeric",month:"long"});
+$("today").textContent=logical().toLocaleDateString("es",{weekday:"long",day:"numeric",month:"long"});
 applySeason();
 show(state.config.defecto?"hoy":"ajustes");
 
